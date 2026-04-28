@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ASOREMSA · Portal de Facturas (Demo)</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background: #F3F4F6;
+    color: #111827;
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  :root {
+    --primary: #2563EB;
+    --primary-dark: #1E40AF;
+    --primary-light: #DBEAFE;
+    --secondary: #6B7280;
+    --success: #10B981;
+    --success-bg: #D1FAE5;
+    --success-text: #065F46;
+    --error: #EF4444;
+    --error-bg: #FEE2E2;
+    --error-text: #991B1B;
+    --warning-bg: #FEF3C7;
+    --warning-text: #92400E;
+    --info-bg: #DBEAFE;
+    --info-text: #1E40AF;
+    --bg: #F3F4F6;
+    --surface: #FFFFFF;
+    --surface-2: #F9FAFB;
+    --border: #E5E7EB;
+    --border-strong: #D1D5DB;
+    --text: #111827;
+    --text-muted: #6B7280;
+    --text-faint: #9CA3AF;
+  }
+  button { font-family: inherit; cursor: pointer; }
+  input, button { font-size: 14px; }
+  a { color: var(--primary); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* === LOGIN === */
+  .login-wrap {
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, #EFF6FF 0%, #F3F4F6 100%);
+    padding: 24px;
+  }
+  .login-card {
+    background: var(--surface); border-radius: 16px; padding: 40px;
+    width: 100%; max-width: 400px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    border: 1px solid var(--border);
+  }
+  .login-logo {
+    width: 64px; height: 64px; border-radius: 14px; background: var(--primary);
+    margin: 0 auto 16px; display: flex; align-items: center; justify-content: center;
+    color: white; font-weight: 600; font-size: 20px; letter-spacing: 2px;
+  }
+  .login-card h1 { text-align: center; font-size: 22px; font-weight: 600; margin-bottom: 4px; }
+  .login-card .subtitle { text-align: center; color: var(--text-muted); margin-bottom: 28px; font-size: 13px; }
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 6px; font-weight: 500; }
+  .input {
+    width: 100%; padding: 10px 12px; border: 1px solid var(--border-strong); border-radius: 8px;
+    font-size: 14px; background: white; transition: border 0.15s, box-shadow 0.15s;
+  }
+  .input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.12); }
+  .btn {
+    padding: 10px 16px; border-radius: 8px; border: 1px solid var(--border-strong);
+    background: white; font-weight: 500; font-size: 14px; transition: all 0.12s;
+  }
+  .btn:hover { background: var(--surface-2); }
+  .btn-primary { background: var(--primary); color: white; border-color: var(--primary); }
+  .btn-primary:hover { background: var(--primary-dark); }
+  .btn-danger { color: var(--error); border-color: #FCA5A5; }
+  .btn-danger:hover { background: var(--error-bg); }
+  .btn-block { width: 100%; padding: 11px; }
+  .btn-sm { padding: 6px 10px; font-size: 12px; }
+  .demo-credentials {
+    margin-top: 20px; padding: 14px; background: var(--surface-2);
+    border-radius: 8px; font-size: 12px; border: 1px solid var(--border);
+  }
+  .demo-credentials strong { display: block; margin-bottom: 6px; color: var(--text); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .demo-credentials .cred-row { display: flex; justify-content: space-between; padding: 3px 0; color: var(--text-muted); font-family: ui-monospace, 'SF Mono', monospace; font-size: 11px; }
+  .login-error { background: var(--error-bg); color: var(--error-text); padding: 10px; border-radius: 8px; font-size: 13px; margin-bottom: 14px; text-align: center; }
+
+  /* === APP SHELL === */
+  .app { min-height: 100vh; display: flex; flex-direction: column; }
+  .topbar {
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    padding: 12px 24px; display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 10;
+  }
+  .topbar-left { display: flex; align-items: center; gap: 12px; }
+  .topbar-logo { width: 36px; height: 36px; border-radius: 8px; background: var(--primary); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 13px; letter-spacing: 1px; }
+  .topbar-logo.admin { background: #1F2937; }
+  .topbar-title { font-size: 15px; font-weight: 600; }
+  .topbar-subtitle { font-size: 12px; color: var(--text-muted); }
+  .topbar-right { display: flex; align-items: center; gap: 12px; }
+  .topbar-user { font-size: 13px; color: var(--text-muted); }
+
+  .main { flex: 1; padding: 24px; max-width: 1200px; margin: 0 auto; width: 100%; }
+  .nas-banner {
+    background: #ECFDF5; border: 1px solid #A7F3D0; color: #065F46;
+    padding: 10px 14px; border-radius: 8px; font-size: 12px; margin-bottom: 20px;
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  /* === STATS === */
+  .stats-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px;
+  }
+  .stat-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px;
+  }
+  .stat-card .label { font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
+  .stat-card .value { font-size: 26px; font-weight: 600; color: var(--text); }
+  .stat-card .delta { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+  .stat-card .delta.up { color: var(--success); }
+
+  /* === UPLOAD ZONE === */
+  .upload-zone {
+    background: var(--surface); border: 2px dashed var(--primary); border-radius: 12px;
+    padding: 36px; text-align: center; transition: all 0.15s; margin-bottom: 20px; cursor: pointer;
+  }
+  .upload-zone.drag-over { background: var(--primary-light); border-color: var(--primary-dark); }
+  .upload-icon { width: 48px; height: 48px; border-radius: 50%; background: var(--primary-light); display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; color: var(--primary); }
+  .upload-zone h3 { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+  .upload-zone p { font-size: 12px; color: var(--text-muted); }
+  .upload-zone input { display: none; }
+
+  .upload-progress {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+    padding: 12px 16px; margin-bottom: 12px; display: flex; align-items: center; gap: 12px;
+  }
+  .upload-progress .name { flex: 1; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .upload-progress .status { font-size: 12px; color: var(--text-muted); }
+  .upload-progress.done .status { color: var(--success); }
+  .upload-progress.error .status { color: var(--error); }
+  .spinner { width: 14px; height: 14px; border: 2px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* === TABLES & CARDS === */
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .panel-head { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .panel-head h2 { font-size: 14px; font-weight: 600; }
+  .panel-head .input { max-width: 200px; padding: 6px 10px; font-size: 13px; }
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: left; padding: 10px 18px; font-size: 12px; font-weight: 500; color: var(--text-muted); background: var(--surface-2); border-bottom: 1px solid var(--border); }
+  td { padding: 12px 18px; font-size: 13px; border-bottom: 1px solid var(--border); }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: var(--surface-2); }
+  .ellipsis { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 500; }
+  .badge-success { background: var(--success-bg); color: var(--success-text); }
+  .badge-info { background: var(--info-bg); color: var(--info-text); }
+  .badge-warning { background: var(--warning-bg); color: var(--warning-text); }
+  .badge-error { background: var(--error-bg); color: var(--error-text); }
+
+  .empty { padding: 48px 24px; text-align: center; color: var(--text-muted); font-size: 13px; }
+
+  /* === ADMIN === */
+  .admin-grid { display: grid; grid-template-columns: 1.7fr 1fr; gap: 16px; }
+  .recent-item { padding: 12px 18px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; gap: 8px; }
+  .recent-item:last-child { border-bottom: none; }
+  .recent-item .name { font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .recent-item .sub { font-size: 11px; color: var(--text-muted); }
+  .recent-item .time { font-size: 11px; color: var(--text-faint); flex-shrink: 0; }
+
+  /* === MODAL === */
+  .modal-bg { position: fixed; inset: 0; background: rgba(17,24,39,0.5); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 20px; }
+  .modal { background: white; border-radius: 12px; padding: 28px; max-width: 480px; width: 100%; max-height: 90vh; overflow: auto; }
+  .modal h2 { font-size: 18px; font-weight: 600; margin-bottom: 6px; }
+  .modal .subtitle { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; }
+  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  .toast { position: fixed; bottom: 24px; right: 24px; background: var(--text); color: white; padding: 12px 18px; border-radius: 8px; font-size: 13px; z-index: 200; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+  .toast.success { background: var(--success); }
+  .toast.error { background: var(--error); }
+
+  .row { display: flex; align-items: center; gap: 8px; }
+  .text-muted { color: var(--text-muted); }
+  .text-success { color: var(--success); }
+
+  @media (max-width: 720px) {
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .admin-grid { grid-template-columns: 1fr; }
+    .main { padding: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="app"></div>
+
+<script>
+// ========== DEMO DATA ==========
+const USERS = [
+  { user: 'admin', pass: 'asoremsa', role: 'admin', nombre: 'Jordi Jordá Moncho' },
+  { user: 'empresa01', pass: 'demo123', role: 'cliente', clienteId: 'cli_001' },
+  { user: 'empresa02', pass: 'demo123', role: 'cliente', clienteId: 'cli_002' },
+  { user: 'empresa03', pass: 'demo123', role: 'cliente', clienteId: 'cli_003' },
+];
+
+const CLIENTES_INIT = [
+  { id: 'cli_001', usuario: 'empresa01', nombre: 'Construcciones García S.L.', cif: 'B12345678', email: 'admin@construccionesgarcia.es', telefono: '961 234 567', contacto: 'Pedro García', estado: 'activo', fechaAlta: '2025-09-12' },
+  { id: 'cli_002', usuario: 'empresa02', nombre: 'Talleres Mediterráneo', cif: 'B87654321', email: 'gerencia@talleresmed.com', telefono: '963 887 221', contacto: 'María Soler', estado: 'activo', fechaAlta: '2025-10-03' },
+  { id: 'cli_003', usuario: 'empresa03', nombre: 'Restaurante La Plaza', cif: 'B45612378', email: 'info@laplaza.es', telefono: '962 445 998', contacto: 'Laura Ferrer', estado: 'activo', fechaAlta: '2026-01-22' },
+  { id: 'cli_004', usuario: 'empresa04', nombre: 'Asesoría Pérez & Hijos', cif: 'B98765432', email: 'contacto@perezhijos.es', telefono: '963 112 887', contacto: 'Ramón Pérez', estado: 'activo', fechaAlta: '2025-06-15' },
+  { id: 'cli_005', usuario: 'empresa05', nombre: 'Carpintería Rovira', cif: 'B33445566', email: 'rovira@carpinteriarovira.es', telefono: '961 776 332', contacto: 'Joan Rovira', estado: 'inactivo', fechaAlta: '2024-11-08' },
+];
+
+// Sample preloaded facturas (metadata only, no actual blobs)
+const FACTURAS_INIT = [
+  { id: 'f1', clienteId: 'cli_001', nombreOriginal: 'factura_endesa_marzo.pdf', tipo: 'application/pdf', tamano: 412000, tamanoOriginal: 412000, uploadDate: '2026-04-25T09:14:00', compressed: false, demoOnly: true },
+  { id: 'f2', clienteId: 'cli_001', nombreOriginal: 'recibo_movil_yoigo.jpg', tipo: 'image/jpeg', tamano: 680000, tamanoOriginal: 3500000, uploadDate: '2026-04-22T16:42:00', compressed: true, demoOnly: true },
+  { id: 'f3', clienteId: 'cli_001', nombreOriginal: 'factura_proveedor_aceros.pdf', tipo: 'application/pdf', tamano: 1200000, tamanoOriginal: 1200000, uploadDate: '2026-04-18T11:23:00', compressed: false, demoOnly: true },
+  { id: 'f4', clienteId: 'cli_002', nombreOriginal: 'ticket_taller_neumaticos.jpg', tipo: 'image/jpeg', tamano: 520000, tamanoOriginal: 2900000, uploadDate: '2026-04-26T14:11:00', compressed: true, demoOnly: true },
+  { id: 'f5', clienteId: 'cli_002', nombreOriginal: 'nomina_marzo_2026.pdf', tipo: 'application/pdf', tamano: 524000, tamanoOriginal: 524000, uploadDate: '2026-04-15T08:30:00', compressed: false, demoOnly: true },
+  { id: 'f6', clienteId: 'cli_003', nombreOriginal: 'factura_makro.pdf', tipo: 'application/pdf', tamano: 890000, tamanoOriginal: 890000, uploadDate: '2026-04-27T10:05:00', compressed: false, demoOnly: true },
+  { id: 'f7', clienteId: 'cli_004', nombreOriginal: 'recibo_alquiler_oficina.pdf', tipo: 'application/pdf', tamano: 320000, tamanoOriginal: 320000, uploadDate: '2026-04-24T15:00:00', compressed: false, demoOnly: true },
+];
+
+// ========== INDEXEDDB ==========
+const DB_NAME = 'asoremsa-portal-demo';
+const DB_VERSION = 1;
+let _db = null;
+
+function openDB() {
+  return new Promise((resolve, reject) => {
+    if (_db) return resolve(_db);
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      if (!db.objectStoreNames.contains('facturas')) db.createObjectStore('facturas', { keyPath: 'id' });
+      if (!db.objectStoreNames.contains('clientes')) db.createObjectStore('clientes', { keyPath: 'id' });
+      if (!db.objectStoreNames.contains('logs')) db.createObjectStore('logs', { keyPath: 'id' });
+    };
+    req.onsuccess = () => { _db = req.result; resolve(_db); };
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function dbAll(store) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const req = db.transaction(store).objectStore(store).getAll();
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+async function dbGet(store, id) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const req = db.transaction(store).objectStore(store).get(id);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+async function dbPut(store, item) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const req = db.transaction(store, 'readwrite').objectStore(store).put(item);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+async function dbDelete(store, id) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const req = db.transaction(store, 'readwrite').objectStore(store).delete(id);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function seedIfEmpty() {
+  const clientes = await dbAll('clientes');
+  if (clientes.length === 0) {
+    for (const c of CLIENTES_INIT) await dbPut('clientes', c);
+  }
+  const facturas = await dbAll('facturas');
+  if (facturas.length === 0) {
+    for (const f of FACTURAS_INIT) await dbPut('facturas', f);
+  }
+}
+
+// ========== STATE ==========
+const state = {
+  user: null,
+  view: 'login',
+  modal: null,
+  uploads: [], // in-progress uploads
+};
+
+// ========== HELPERS ==========
+const $ = (sel, parent = document) => parent.querySelector(sel);
+const escapeHtml = (s) => String(s ?? '').replace(/[&<>"']/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+const fmtSize = (b) => { if (b < 1024) return b + ' B'; if (b < 1024*1024) return (b/1024).toFixed(0) + ' KB'; return (b/(1024*1024)).toFixed(1) + ' MB'; };
+const fmtDate = (iso) => { const d = new Date(iso); return d.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' }); };
+const fmtDateTime = (iso) => { const d = new Date(iso); return d.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }) + ' ' + d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }); };
+const timeAgo = (iso) => {
+  const diff = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+  if (diff < 60) return 'hace ' + diff + ' s';
+  if (diff < 3600) return 'hace ' + Math.floor(diff/60) + ' min';
+  if (diff < 86400) return 'hace ' + Math.floor(diff/3600) + ' h';
+  return 'hace ' + Math.floor(diff/86400) + ' d';
+};
+
+function toast(msg, type = '') {
+  const el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 3000);
+}
+
+// ========== IMAGE COMPRESSION (real, in-browser) ==========
+function compressImage(file, { maxDim = 1920, quality = 0.7 } = {}) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      let { width, height } = img;
+      if (width > maxDim || height > maxDim) {
+        const ratio = Math.min(maxDim / width, maxDim / height);
+        width = Math.round(width * ratio);
+        height = Math.round(height * ratio);
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+      canvas.toBlob((blob) => {
+        URL.revokeObjectURL(url);
+        if (!blob) return reject(new Error('Compression failed'));
+        resolve(blob);
+      }, 'image/jpeg', quality);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Image load failed')); };
+    img.src = url;
+  });
+}
+
+// ========== UPLOAD HANDLING ==========
+async function handleUploadFiles(fileList) {
+  const allowed = ['application/pdf', 'image/jpeg', 'image/png', 'image/tiff', 'image/jpg'];
+  const maxSize = 50 * 1024 * 1024;
+
+  for (const file of fileList) {
+    if (!allowed.includes(file.type) && !/\.(pdf|jpe?g|png|tiff?)$/i.test(file.name)) {
+      toast('Tipo no permitido: ' + file.name, 'error');
+      continue;
+    }
+    if (file.size > maxSize) {
+      toast('Demasiado grande (>50MB): ' + file.name, 'error');
+      continue;
+    }
+
+    const uploadEntry = { id: 'u_' + Date.now() + Math.random(), name: file.name, status: 'processing' };
+    state.uploads.push(uploadEntry);
+    render();
+
+    try {
+      const originalSize = file.size;
+      let blob = file;
+      let compressed = false;
+      let tipo = file.type || 'application/octet-stream';
+
+      if (file.type.startsWith('image/')) {
+        uploadEntry.status = 'compressing';
+        render();
+        blob = await compressImage(file);
+        compressed = true;
+        tipo = 'image/jpeg';
+      }
+
+      const factura = {
+        id: 'f_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
+        clienteId: state.user.clienteId,
+        nombreOriginal: file.name,
+        nombreGuardado: Date.now() + '-' + file.name.replace(/[^a-zA-Z0-9._-]/g, '_'),
+        tipo,
+        tamano: blob.size,
+        tamanoOriginal: originalSize,
+        blob,
+        uploadDate: new Date().toISOString(),
+        compressed,
+        mes: new Date().toISOString().slice(0, 7),
+      };
+
+      await dbPut('facturas', factura);
+      uploadEntry.status = 'done';
+      uploadEntry.compressed = compressed;
+      uploadEntry.savings = compressed ? Math.round((1 - blob.size / originalSize) * 100) : 0;
+      render();
+
+      setTimeout(() => {
+        const idx = state.uploads.findIndex(u => u.id === uploadEntry.id);
+        if (idx !== -1) { state.uploads.splice(idx, 1); render(); }
+      }, 2500);
+
+    } catch (err) {
+      uploadEntry.status = 'error';
+      uploadEntry.error = err.message;
+      render();
+      console.error(err);
+    }
+  }
+}
+
+async function downloadFactura(id) {
+  const f = await dbGet('facturas', id);
+  if (!f) return toast('Factura no encontrada', 'error');
+  if (f.demoOnly || !f.blob) {
+    toast('Demo: archivo de muestra (sin contenido real)');
+    return;
+  }
+  const url = URL.createObjectURL(f.blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = f.nombreOriginal;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+async function deleteFactura(id) {
+  if (!confirm('¿Eliminar esta factura? Esta acción no se puede deshacer.')) return;
+  await dbDelete('facturas', id);
+  toast('Factura eliminada', 'success');
+  render();
+}
+
+// ========== AUTH ==========
+async function login(usuario, password) {
+  const u = USERS.find(x => x.user === usuario && x.pass === password);
+  if (!u) return false;
+  if (u.role === 'cliente') {
+    const cli = await dbGet('clientes', u.clienteId);
+    if (!cli || cli.estado !== 'activo') return false;
+    state.user = { ...u, cliente: cli };
+  } else {
+    state.user = { ...u };
+  }
+  state.view = u.role;
+  return true;
+}
+function logout() { state.user = null; state.view = 'login'; render(); }
+
+// ========== RENDER ==========
+function render() {
+  const root = $('#app');
+  if (!state.user) { root.innerHTML = renderLogin(); attachLoginEvents(); return; }
+  if (state.user.role === 'admin') { renderAdminAsync(root); return; }
+  renderClienteAsync(root);
+}
+
+function renderLogin() {
+  return `
+    <div class="login-wrap">
+      <div class="login-card">
+        <div class="login-logo">AS</div>
+        <h1>ASOREMSA</h1>
+        <p class="subtitle">Portal de Facturas · Acceso seguro</p>
+        <div id="login-error"></div>
+        <div class="field">
+          <label>Usuario</label>
+          <input class="input" id="login-user" placeholder="empresa01" autocomplete="username">
+        </div>
+        <div class="field">
+          <label>Contraseña</label>
+          <input class="input" id="login-pass" type="password" placeholder="••••••••" autocomplete="current-password">
+        </div>
+        <button class="btn btn-primary btn-block" id="login-btn">Entrar</button>
+        <div class="demo-credentials">
+          <strong>Credenciales de demo</strong>
+          <div class="cred-row"><span>Cliente · Construcciones García</span><span>empresa01 / demo123</span></div>
+          <div class="cred-row"><span>Cliente · Talleres Mediterráneo</span><span>empresa02 / demo123</span></div>
+          <div class="cred-row"><span>Admin · Gestoría ASOREMSA</span><span>admin / asoremsa</span></div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function attachLoginEvents() {
+  const doLogin = async () => {
+    const u = $('#login-user').value.trim();
+    const p = $('#login-pass').value;
+    const ok = await login(u, p);
+    if (!ok) {
+      $('#login-error').innerHTML = '<div class="login-error">Usuario o contraseña incorrectos</div>';
+      return;
+    }
+    render();
+  };
+  $('#login-btn').addEventListener('click', doLogin);
+  $('#login-pass').addEventListener('keydown', (e) => { if (e.key === 'Enter') doLogin(); });
+  $('#login-user').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('#login-pass').focus(); });
+}
+
+// ========== CLIENT VIEW ==========
+async function renderClienteAsync(root) {
+  const cli = state.user.cliente;
+  const allFacturas = await dbAll('facturas');
+  const mias = allFacturas.filter(f => f.clienteId === cli.id).sort((a,b) => b.uploadDate.localeCompare(a.uploadDate));
+  const totalSize = mias.reduce((s, f) => s + (f.tamano || 0), 0);
+  const totalOrig = mias.reduce((s, f) => s + (f.tamanoOriginal || f.tamano || 0), 0);
+  const savings = totalOrig > 0 ? Math.round((1 - totalSize / totalOrig) * 100) : 0;
+  const thisMonth = new Date().toISOString().slice(0, 7);
+  const monthCount = mias.filter(f => f.uploadDate.startsWith(thisMonth)).length;
+
+  root.innerHTML = `
+    <div class="app">
+      <div class="topbar">
+        <div class="topbar-left">
+          <div class="topbar-logo">AS</div>
+          <div>
+            <div class="topbar-title">ASOREMSA · Portal de Facturas</div>
+            <div class="topbar-subtitle">${escapeHtml(cli.nombre)}</div>
+          </div>
+        </div>
+        <div class="topbar-right">
+          <span class="topbar-user">${escapeHtml(cli.contacto)}</span>
+          <button class="btn btn-sm" id="btn-logout">Salir</button>
+        </div>
+      </div>
+
+      <div class="main">
+        <div class="nas-banner">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 13v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-5"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+          Tus archivos viajan cifrados y se guardan en el almacenamiento privado de ASOREMSA — nunca en servicios cloud externos.
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card"><div class="label">Total facturas</div><div class="value">${mias.length}</div></div>
+          <div class="stat-card"><div class="label">Este mes</div><div class="value">${monthCount}</div></div>
+          <div class="stat-card"><div class="label">Almacenamiento</div><div class="value">${fmtSize(totalSize)}</div></div>
+          <div class="stat-card"><div class="label">Ahorro compresión</div><div class="value text-success">${savings}%</div></div>
+        </div>
+
+        <div class="upload-zone" id="upload-zone">
+          <input type="file" id="file-input" multiple accept=".pdf,.jpg,.jpeg,.png,.tif,.tiff,application/pdf,image/*">
+          <div class="upload-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          </div>
+          <h3>Arrastra aquí tus facturas o haz clic para seleccionar</h3>
+          <p>PDF, JPG, PNG, TIFF · Máx. 50MB · Las imágenes se comprimen automáticamente</p>
+        </div>
+
+        <div id="uploads-area">
+          ${state.uploads.map(u => `
+            <div class="upload-progress ${u.status === 'done' ? 'done' : u.status === 'error' ? 'error' : ''}">
+              ${u.status === 'processing' || u.status === 'compressing' ? '<div class="spinner"></div>' : ''}
+              ${u.status === 'done' ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
+              ${u.status === 'error' ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>' : ''}
+              <div class="name">${escapeHtml(u.name)}</div>
+              <div class="status">${
+                u.status === 'compressing' ? 'Comprimiendo imagen...' :
+                u.status === 'processing' ? 'Procesando...' :
+                u.status === 'done' ? (u.compressed ? `Comprimido ${u.savings}% · Guardado` : 'Guardado') :
+                u.status === 'error' ? ('Error: ' + (u.error || '')) : ''
+              }</div>
+            </div>
+          `).join('')}
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <h2>Mis facturas</h2>
+            <input class="input" id="search-input" placeholder="Buscar archivo...">
+          </div>
+          <div id="facturas-table">
+            ${mias.length === 0 ? '<div class="empty">Aún no has subido ninguna factura. Arrastra archivos arriba para empezar.</div>' : `
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width: 40%;">Archivo</th>
+                    <th style="width: 16%;">Fecha</th>
+                    <th style="width: 12%; text-align: right;">Tamaño</th>
+                    <th style="width: 20%; text-align: center;">Estado</th>
+                    <th style="width: 12%; text-align: right;"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${mias.map(f => `
+                    <tr data-name="${escapeHtml(f.nombreOriginal.toLowerCase())}">
+                      <td><div class="ellipsis">${escapeHtml(f.nombreOriginal)}</div></td>
+                      <td class="text-muted">${fmtDate(f.uploadDate)}</td>
+                      <td style="text-align: right;">${fmtSize(f.tamano)}</td>
+                      <td style="text-align: center;">${f.compressed ? `<span class="badge badge-info">Comprimida ${Math.round((1 - f.tamano/f.tamanoOriginal) * 100)}%</span>` : '<span class="badge badge-success">Subida</span>'}</td>
+                      <td style="text-align: right;"><a href="#" data-download="${f.id}">Descargar</a></td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            `}
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  attachClienteEvents();
+}
+
+function attachClienteEvents() {
+  $('#btn-logout').addEventListener('click', logout);
+
+  const zone = $('#upload-zone');
+  const input = $('#file-input');
+  zone.addEventListener('click', () => input.click());
+  input.addEventListener('change', (e) => { handleUploadFiles(Array.from(e.target.files)); input.value = ''; });
+  zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.classList.add('drag-over'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+  zone.addEventListener('drop', (e) => {
+    e.preventDefault(); zone.classList.remove('drag-over');
+    handleUploadFiles(Array.from(e.dataTransfer.files));
+  });
+
+  document.querySelectorAll('[data-download]').forEach(a => {
+    a.addEventListener('click', (e) => { e.preventDefault(); downloadFactura(a.dataset.download); });
+  });
+
+  const search = $('#search-input');
+  if (search) search.addEventListener('input', (e) => {
+    const q = e.target.value.toLowerCase();
+    document.querySelectorAll('#facturas-table tbody tr').forEach(tr => {
+      tr.style.display = tr.dataset.name.includes(q) ? '' : 'none';
+    });
+  });
+}
+
+// ========== ADMIN VIEW ==========
+async function renderAdminAsync(root) {
+  const clientes = await dbAll('clientes');
+  const facturas = await dbAll('facturas');
+  const activos = clientes.filter(c => c.estado === 'activo').length;
+  const totalSize = facturas.reduce((s, f) => s + (f.tamano || 0), 0);
+  const today = new Date().toISOString().slice(0, 10);
+  const todayCount = facturas.filter(f => f.uploadDate.startsWith(today)).length;
+  const recent = [...facturas].sort((a,b) => b.uploadDate.localeCompare(a.uploadDate)).slice(0, 6);
+  const cliMap = Object.fromEntries(clientes.map(c => [c.id, c]));
+
+  root.innerHTML = `
+    <div class="app">
+      <div class="topbar">
+        <div class="topbar-left">
+          <div class="topbar-logo admin">AS</div>
+          <div>
+            <div class="topbar-title">ASOREMSA · Panel de Gestión</div>
+            <div class="topbar-subtitle">Administrador · ${escapeHtml(state.user.nombre)}</div>
+          </div>
+        </div>
+        <div class="topbar-right">
+          <button class="btn btn-primary btn-sm" id="btn-new-client">+ Crear cliente</button>
+          <button class="btn btn-sm" id="btn-logout">Salir</button>
+        </div>
+      </div>
+
+      <div class="main">
+        <div class="nas-banner">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/><line x1="6" y1="15" x2="6" y2="15"/></svg>
+          Almacenamiento configurado: <strong>NAS local en oficinas de ASOREMSA</strong> (en demo: navegador) — los archivos no salen de tu red.
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card"><div class="label">Clientes activos</div><div class="value">${activos}</div><div class="delta">de ${clientes.length} total</div></div>
+          <div class="stat-card"><div class="label">Total facturas</div><div class="value">${facturas.length}</div><div class="delta up">${todayCount} hoy</div></div>
+          <div class="stat-card"><div class="label">Almacenamiento</div><div class="value">${fmtSize(totalSize)}</div><div class="delta">en NAS</div></div>
+          <div class="stat-card"><div class="label">Estado NAS</div><div class="value text-success">OK</div><div class="delta">RAID 6 sano</div></div>
+        </div>
+
+        <div class="admin-grid">
+          <div class="panel">
+            <div class="panel-head">
+              <h2>Clientes</h2>
+              <input class="input" id="cli-search" placeholder="Buscar...">
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Empresa</th>
+                  <th>CIF</th>
+                  <th style="text-align: right;">Facturas</th>
+                  <th style="text-align: center;">Estado</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                ${clientes.map(c => {
+                  const count = facturas.filter(f => f.clienteId === c.id).length;
+                  return `
+                    <tr data-search="${escapeHtml((c.nombre + ' ' + c.cif).toLowerCase())}">
+                      <td><div class="ellipsis"><strong>${escapeHtml(c.nombre)}</strong></div><div class="text-muted" style="font-size: 11px;">${escapeHtml(c.usuario)} · ${escapeHtml(c.email)}</div></td>
+                      <td class="text-muted">${escapeHtml(c.cif)}</td>
+                      <td style="text-align: right;">${count}</td>
+                      <td style="text-align: center;"><span class="badge ${c.estado === 'activo' ? 'badge-success' : 'badge-error'}">${c.estado === 'activo' ? 'Activo' : 'Inactivo'}</span></td>
+                      <td style="text-align: right;"><a href="#" data-view-cli="${c.id}">Ver</a></td>
+                    </tr>
+                  `;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head"><h2>Últimas subidas</h2></div>
+            ${recent.length === 0 ? '<div class="empty">Sin subidas todavía</div>' :
+              recent.map(f => {
+                const cli = cliMap[f.clienteId];
+                return `
+                  <div class="recent-item">
+                    <div style="overflow: hidden;">
+                      <div class="ellipsis name">${escapeHtml(f.nombreOriginal)}</div>
+                      <div class="sub">${cli ? escapeHtml(cli.nombre) : '?'}</div>
+                    </div>
+                    <div class="time">${timeAgo(f.uploadDate)}</div>
+                  </div>
+                `;
+              }).join('')
+            }
+          </div>
+        </div>
+
+        <div style="height: 16px;"></div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <h2>Todas las facturas</h2>
+            <input class="input" id="fact-search" placeholder="Buscar archivo o cliente...">
+          </div>
+          ${facturas.length === 0 ? '<div class="empty">Sin facturas todavía</div>' : `
+            <table>
+              <thead>
+                <tr>
+                  <th>Archivo</th>
+                  <th>Cliente</th>
+                  <th>Fecha</th>
+                  <th style="text-align: right;">Tamaño</th>
+                  <th style="text-align: center;">Estado</th>
+                  <th style="text-align: right;"></th>
+                </tr>
+              </thead>
+              <tbody>
+                ${[...facturas].sort((a,b) => b.uploadDate.localeCompare(a.uploadDate)).map(f => {
+                  const cli = cliMap[f.clienteId];
+                  return `
+                    <tr data-search="${escapeHtml((f.nombreOriginal + ' ' + (cli ? cli.nombre : '')).toLowerCase())}">
+                      <td><div class="ellipsis">${escapeHtml(f.nombreOriginal)}</div></td>
+                      <td class="text-muted"><div class="ellipsis">${cli ? escapeHtml(cli.nombre) : '?'}</div></td>
+                      <td class="text-muted">${fmtDate(f.uploadDate)}</td>
+                      <td style="text-align: right;">${fmtSize(f.tamano)}</td>
+                      <td style="text-align: center;">${f.compressed ? `<span class="badge badge-info">Comp. ${Math.round((1 - f.tamano/f.tamanoOriginal) * 100)}%</span>` : '<span class="badge badge-success">Original</span>'}</td>
+                      <td style="text-align: right;">
+                        <a href="#" data-download="${f.id}">Descargar</a>
+                        <a href="#" data-delete="${f.id}" style="color: var(--error); margin-left: 10px;">Eliminar</a>
+                      </td>
+                    </tr>
+                  `;
+                }).join('')}
+              </tbody>
+            </table>
+          `}
+        </div>
+
+      </div>
+    </div>
+  `;
+
+  attachAdminEvents();
+}
+
+function attachAdminEvents() {
+  $('#btn-logout').addEventListener('click', logout);
+  $('#btn-new-client').addEventListener('click', showNewClientModal);
+
+  document.querySelectorAll('[data-download]').forEach(a => a.addEventListener('click', (e) => { e.preventDefault(); downloadFactura(a.dataset.download); }));
+  document.querySelectorAll('[data-delete]').forEach(a => a.addEventListener('click', (e) => { e.preventDefault(); deleteFactura(a.dataset.delete); }));
+  document.querySelectorAll('[data-view-cli]').forEach(a => a.addEventListener('click', (e) => { e.preventDefault(); toast('Vista detallada del cliente — próxima iteración'); }));
+
+  const cliSearch = $('#cli-search');
+  if (cliSearch) cliSearch.addEventListener('input', (e) => {
+    const q = e.target.value.toLowerCase();
+    document.querySelectorAll('.admin-grid tbody tr').forEach(tr => { tr.style.display = tr.dataset.search.includes(q) ? '' : 'none'; });
+  });
+  const factSearch = $('#fact-search');
+  if (factSearch) factSearch.addEventListener('input', (e) => {
+    const q = e.target.value.toLowerCase();
+    document.querySelectorAll('.panel:last-child tbody tr').forEach(tr => { tr.style.display = tr.dataset.search.includes(q) ? '' : 'none'; });
+  });
+}
+
+function showNewClientModal() {
+  const modal = document.createElement('div');
+  modal.className = 'modal-bg';
+  modal.innerHTML = `
+    <div class="modal" onclick="event.stopPropagation()">
+      <h2>Nuevo cliente</h2>
+      <p class="subtitle">Crea una cuenta. Se generará una contraseña temporal y una carpeta en el NAS.</p>
+      <div class="grid-2">
+        <div class="field"><label>Empresa</label><input class="input" id="nc-nombre" placeholder="Ej. Bar Pepe S.L."></div>
+        <div class="field"><label>CIF</label><input class="input" id="nc-cif" placeholder="B12345678"></div>
+        <div class="field"><label>Email contacto</label><input class="input" id="nc-email" placeholder="info@empresa.es"></div>
+        <div class="field"><label>Teléfono</label><input class="input" id="nc-tel" placeholder="961 234 567"></div>
+        <div class="field"><label>Persona contacto</label><input class="input" id="nc-cont" placeholder="Pepe Pérez"></div>
+        <div class="field"><label>Usuario</label><input class="input" id="nc-user" placeholder="empresa10"></div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn" id="nc-cancel">Cancelar</button>
+        <button class="btn btn-primary" id="nc-save">Crear y enviar credenciales</button>
+      </div>
+    </div>
+  `;
+  modal.addEventListener('click', () => modal.remove());
+  document.body.appendChild(modal);
+  $('#nc-cancel').addEventListener('click', () => modal.remove());
+  $('#nc-save').addEventListener('click', async () => {
+    const nombre = $('#nc-nombre').value.trim();
+    const cif = $('#nc-cif').value.trim();
+    const email = $('#nc-email').value.trim();
+    const usuario = $('#nc-user').value.trim();
+    if (!nombre || !cif || !email || !usuario) return toast('Faltan campos obligatorios', 'error');
+    const id = 'cli_' + String(Date.now()).slice(-6);
+    const nuevo = {
+      id, usuario, nombre, cif, email,
+      telefono: $('#nc-tel').value.trim(),
+      contacto: $('#nc-cont').value.trim(),
+      estado: 'activo',
+      fechaAlta: new Date().toISOString().slice(0, 10),
+    };
+    await dbPut('clientes', nuevo);
+    const tempPass = Math.random().toString(36).slice(2, 10);
+    modal.remove();
+    toast(`Cliente creado · contraseña temporal: ${tempPass} (en producción se enviará por email)`, 'success');
+    render();
+  });
+}
+
+// ========== INIT ==========
+async function init() {
+  await openDB();
+  await seedIfEmpty();
+  render();
+}
+
+init();
+</script>
+</body>
+</html>
